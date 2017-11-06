@@ -1,3 +1,6 @@
 # Final-Project
 Final Project in Software Engineering
-tali
+diary: https://trello.com/b/OjTevadw/welcome-board
+
+
+

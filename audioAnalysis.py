@@ -8,7 +8,7 @@ sampFreq, data = wavfile.read('./outExpFinal.wav')
 print(data)
 print(data.dtype) #ייצוג המידע מהקובץ
 print(sampFreq) #קצב
-data = data / (2.**15)  # ממפים את הטונים לטווח מסויים
+data = data / (2.**15)  #  - זה מה שמכניסים ל np.arange - ממפים את הטונים לטווח מסויים
 data = data[0:200000]
 #print(data[10000:400000])
 #print(len(data))
@@ -34,5 +34,5 @@ for audioPoint in data:
         print("bumm")
         break
 
-
-
+#  When finished processing - Deletes the file
+# os.remove("recordtest.py") - שם הקובץ שיצרנו למעלה

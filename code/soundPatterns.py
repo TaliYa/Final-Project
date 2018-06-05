@@ -55,4 +55,3 @@ print (accept_test(pattern, test, min_error))
 
 
 
-

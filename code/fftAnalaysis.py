@@ -1,107 +1,191 @@
-#required libraries
-import urllib
-import scipy.io.wavfile
+from scipy.io import wavfile
 import numpy as np
-from numpy import fft as fft
-
-#import pydub
-
-#a temp folder for downloads
-temp_folder="H:\Documents"
-
-#spotify mp3 sample file
-##web_file="http://p.scdn.co/mp3-preview/35b4ce45af06203992a86fa729d17b1c1f93cac5"
-
-#download file
-##urllib.urlretrieve(web_file,temp_folder+"file.mp3")
-#read mp3 file
-##mp3 = pydub.AudioSegment.from_mp3(temp_folder+"file.mp3")
-#convert to wav
-##mp3.export(temp_folder+"file.wav", format="wav")
-#read wav file
-rate,audData=scipy.io.wavfile.read("./schoolAmbience.wav")
-
-print(rate)
-print(audData)
-
-#wav length
-audData.shape[0] / rate
-
-#wav number of channels mono/stereo
-audData.shape[0]
-#if stereo grab both channels
-channel1=audData[:,0] #left
-channel2=audData[:,1] #right
-
-
-audData.dtype
-'''
-print(rate)
-#save wav file
-scipy.io.wavfile.write(temp_folder+"file2.wav", rate, audData)
-#save a file at half and double speed
-scipy.io.wavfile.write(temp_folder+"file2.wav", rate/2, audData)
-scipy.io.wavfile.write(temp_folder+"file2.wav", rate*2, audData)
-#save a single channel
-scipy.io.wavfile.write(temp_folder+"file2.wav", rate, channel1)
-'''
-
 import matplotlib.pyplot as plt
+import platform
+import time
+import os
+import cmath
+import random
+from numpy import fft as fft
+#import scikits.audiolab as audio
 
-#create a time variable in seconds
-time = np.arange(0, float(audData.shape[0]), 1) / rate
 
-#plot amplitude (or loudness) over time
-plt.figure(1)
-plt.subplot(211)
-plt.plot(time, channel1, linewidth=0.01, alpha=0.7, color='#ff7f00')
-plt.xlabel('Time (s)')
+constLimit = 500
+arrayPattern = []
+
+sampFreq, data = wavfile.read('./s-y.wav')
+print(sampFreq) #rate
+#data = data / (2.**15)  # ממפים את הטונים לטווח מסויים
+
+dataLength = len(data)
+channel = data[:0] # נשתמש בערוץ אחד
+n = len(channel)
+
+timeArray = np.arange(0, dataLength, 1) # 5292 נקודות שיש למידע בקובץ
+timeArray = timeArray / sampFreq
+timeArray = timeArray * 1000  #scale to milliseconds
+
+
+# שרטוט המידע - דיאגרמה 
+plt.plot(timeArray, data, color='k') 
 plt.ylabel('Amplitude')
-plt.subplot(212)
-plt.plot(time, channel2, linewidth=0.01, alpha=0.7, color='#ff7f00')
-plt.xlabel('Time (s)')
-plt.ylabel('Amplitude')
+plt.xlabel('Time (ms)')
 plt.show()
 
 
-fourier=fft.fft(channel1)
 
-plt.plot(fourier, color='#ff7f00')
-plt.xlabel('k')
-plt.ylabel('Amplitude')
-plt.show()
+def check_month(month):
+    '''
+    Cheack if the file creation month is normal
+    If the month is July or August
+    '''
+    START_MONTH = "July"
+    END_MONTH = "August"
+    if month is START_MONTH or month is END_MONTH:
+        return False
+    else:
+        print("true")
+        return True
 
 
-n = len(channel1)
-fourier = fourier[0:(n/2)]
+def check_day(day):
+    '''
+    Cheack if the file creation day is normal
+    If the day is Saturday 
+    '''
+    DAY = "Saturday"
+    if day is DAY:
+        return False
+    else:
+        print("true")
+        return True
 
-# scale by the number of points so that the magnitude does not depend on the length
-fourier = fourier / float(n)
 
-#calculate the frequency at each point in Hz
-freqArray = np.arange(0, (n/2), 1.0) * (rate*1.0/n);
+def check_time(time):
+    '''
+    Cheack if the file creation time is normal
+    '''
+    START_TIME = "20:00:00"
+    END_TIME = "07:00:00"
+    
+    if time < START_TIME and time > END_TIME:
+        return True
+    else:
+        return False
 
-plt.plot(freqArray/1000, 10*np.log10(fourier), color='#ff7f00', linewidth=0.02)
-plt.xlabel('Frequency (kHz)')
-plt.ylabel('Power (dB)')
-plt.show()
 
-plt.figure(2, figsize=(8,6))
-plt.subplot(211)
-Pxx, freqs, bins, im = plt.specgram(channel1, Fs=rate, NFFT=1024, cmap=plt.get_cmap('autumn_r'))
-cbar=plt.colorbar(im)
-plt.xlabel('Time (s)')
-plt.ylabel('Frequency (Hz)')
-cbar.set_label('Intensity dB')
-plt.subplot(212)
-Pxx, freqs, bins, im = plt.specgram(channel2, Fs=rate, NFFT=1024, cmap=plt.get_cmap('autumn_r'))
-cbar=plt.colorbar(im)
-plt.xlabel('Time (s)')
-plt.ylabel('Frequency (Hz)')
-cbar.set_label('Intensity (dB)')
-plt.show()
+def check_normal(anomalyParams):
+    '''
+    Check anomalous of audio parameters
+    '''
+    if check_month(anomalyParams["month"]) and check_day(anomalyParams["day"]) and check_time(anomalyParams["time"]):
+        return True
+            
+               
+def file_creation_date(path_to_file):
+    """
+    Try to get the date that a file was created, falling back to when it was
+    last modified if that isn't possible.
+    """
+    if platform.system() == 'Windows':
+        return os.path.getctime(path_to_file)
+    else:
+        stat = os.stat(path_to_file)
+        try:
+            return stat.st_birthtime
+        except AttributeError:
+            # We're probably on Linux. No easy way to get creation dates here,
+            # so we'll settle for when its content was last modified.
+            return stat.st_mtime
 
-np.where(freqs==10034.47265625)
-MHZ10=Pxx[233,:]
-plt.plot(bins, MHZ10, color='#ff7f00')
-plt.show()
+
+def calc_distances(sound_file):
+    '''
+    Calculate the distances between criticsl points in an audio file
+    '''
+    fs, data = wavfile.read(sound_file)
+    #print(data)
+    data_size = len(data)
+
+    min_val = 8000
+    focus_size = int(0.15*fs)
+    
+    print(focus_size)
+
+    focuses = [] # critical point 
+    distances = [] # distances between the criticsl points
+    idx = 0
+
+    while idx < len(data):
+        if data[idx] > min_val:
+            mean_idx = idx + focus_size // 2
+            focuses.append(float(mean_idx)/data_size)
+            if len(focuses) > 1:
+                last_focus = focuses[-2]
+                actual_focus = focuses[-1]
+                distances.append(actual_focus - last_focus)
+            idx+=focus_size
+        else:
+            idx+=1
+    return distances
+
+
+def compare_patterns(pattren, test, min_error):
+    '''
+    Compare between 2 patterns off files audio 
+    '''
+    if len(pattern) > len(test):
+        return False
+    for i, dt in enumerate(pattren):
+        if not dt - test[i] < min_error:
+            return False       
+    return True
+         
+
+
+'''
+P R O C E S S 
+'''
+
+# creat a pattern from the audio file
+pattern = calc_distances('./shots1.wav')
+#pattern = calc_distances('./s-y-short.wav')   
+
+min_error = 0.1
+for patternItem in arrayPattern:
+    '''
+    checks whether the pattern matches an existing pattern
+    '''
+    if compare_patterns(pattern, patternItem, min_error):
+        print('the pattern match to existing pattren')
+
+'''
+checks anothers parameters of the audio file to check anomaly:
+year, month, day, time...
+'''
+fileDateCreation = time.ctime(file_creation_date('./shots1.wav')) # get the date creation of the audio file
+#fileDateCreation = time.ctime(file_creation_date('./s-y-short.wav')) # get the date creation of the audio file
+
+arrayDate = fileDateCreation.split(" ")
+fileCreationDay = arrayDate[0]  #day
+fileCreationMonth = arrayDate[1] #month
+fileCreationYear = arrayDate[5] #year
+fileCreationTime = arrayDate[4] #time
+print(arrayDate)
+
+# array of parameters for check the anomaly of sound
+objAnomalyParams = {"month":fileCreationMonth,
+                    "day":fileCreationDay,
+                    "time":fileCreationTime}
+
+if not check_normal(objAnomalyParams):
+    # if the parameters do not meet the normal audio conditions 
+    for audioPoint in data:
+       # if audioPoint > constLimit:
+            arrayPattern.append(pattern)
+            print("bumm")
+            break
+
+
+#run fftAnalysis on the audio file 
+import fftAnalysis

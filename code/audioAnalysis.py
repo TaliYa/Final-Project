@@ -110,8 +110,8 @@ def calc_distances(sound_file):
     data_size = len(data)
 
     min_val = 250
-    print(fs)
-    focus_size = int(0.15*fs)
+    focus_size = 650 
+    #int(0.15*fs)
     
     print(focus_size)
 

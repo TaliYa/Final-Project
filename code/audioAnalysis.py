@@ -80,7 +80,7 @@ def check_normal(anomalyParams):
     '''
     Check anomalous of audio parameters
     '''
-    if check_normal(anomalyParams["month"]) and check_day(anomalyParams["day"]) and check_time(anomalyParams["time"]):
+    if check_month(anomalyParams["month"]) and check_day(anomalyParams["day"]) and check_time(anomalyParams["time"]):
         return True
             
                
@@ -180,7 +180,7 @@ objAnomalyParams = {"month":fileCreationMonth,
                     "time":fileCreationTime}
 
 if !check_normal(objAnomalyParams):
-    # if the parameters do not meet the ormal audio conditions 
+    # if the parameters do not meet the normal audio conditions 
     for audioPoint in data:
        # if audioPoint > constLimit:
             arrayPattern.append(pattern)

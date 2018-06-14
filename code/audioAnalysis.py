@@ -7,7 +7,7 @@ import os
 import cmath
 import random
 from numpy import fft as fft
-import scikits.audiolab as audio
+#import scikits.audiolab as audio
 
 
 constLimit = 500
@@ -25,11 +25,9 @@ timeArray = np.arange(0, dataLength, 1) # 5292 נקודות שיש למידע ב
 timeArray = timeArray / sampFreq
 timeArray = timeArray * 1000  #scale to milliseconds
 
-#fftData = fft.fft(channel)
 
 # שרטוט המידע - דיאגרמה 
-#plt.plot(timeArray, data, color='k') 
-plt.plot(fftData, color='k')
+plt.plot(timeArray, data, color='k') 
 plt.ylabel('Amplitude')
 plt.xlabel('Time (ms)')
 plt.show()
@@ -109,9 +107,8 @@ def calc_distances(sound_file):
     #print(data)
     data_size = len(data)
 
-    min_val = 250
-    focus_size = 650 
-    #int(0.15*fs)
+    min_val = 8000
+    focus_size = int(0.15*fs)
     
     print(focus_size)
 
@@ -151,7 +148,8 @@ P R O C E S S
 '''
 
 # creat a pattern from the audio file
-pattern = calc_distances('./s-y.wav')    
+pattern = calc_distances('./shots1.wav')
+#pattern = calc_distances('./s-y-short.wav')   
 
 min_error = 0.1
 for patternItem in arrayPattern:
@@ -166,6 +164,7 @@ checks anothers parameters of the audio file to check anomaly:
 year, month, day, time...
 '''
 fileDateCreation = time.ctime(file_creation_date('./shots1.wav')) # get the date creation of the audio file
+#fileDateCreation = time.ctime(file_creation_date('./s-y-short.wav')) # get the date creation of the audio file
 
 arrayDate = fileDateCreation.split(" ")
 fileCreationDay = arrayDate[0]  #day
@@ -179,10 +178,14 @@ objAnomalyParams = {"month":fileCreationMonth,
                     "day":fileCreationDay,
                     "time":fileCreationTime}
 
-if !check_normal(objAnomalyParams):
+if not check_normal(objAnomalyParams):
     # if the parameters do not meet the normal audio conditions 
     for audioPoint in data:
        # if audioPoint > constLimit:
             arrayPattern.append(pattern)
             print("bumm")
             break
+
+
+#run fftAnalysis on the audio file 
+import fftAnalysis
